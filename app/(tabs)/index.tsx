@@ -1,496 +1,300 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import {
-  Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
+  SafeAreaView,
   StyleSheet,
+  Text,
   TextInput,
   View,
-  Text,
-} from 'react-native';
-import { ThemedText } from '@/components/themed-text';
+} from "react-native";
 
-type Task = {
-  id: string;
-  title: string;
-  dueDate: string;
-  completed: boolean;
-};
+type Operation = "+" | "−" | "×" | "÷";
 
 export default function HomeScreen() {
-  const [taskTitle, setTaskTitle] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [firstNumber, setFirstNumber] = useState("");
+  const [secondNumber, setSecondNumber] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Finish React Native activity',
-      dueDate: '09/05/2026',
-      completed: false,
-    },
-    {
-      id: '2',
-      title: 'Review programming notes',
-      dueDate: '09/03/2026',
-      completed: true,
-    },
-  ]);
-
-  const addTask = () => {
-    if (!taskTitle.trim()) {
-      Alert.alert('Missing Task Title', 'Please enter a task title.');
-      return;
-    }
-
-    if (!dueDate.trim()) {
-      Alert.alert('Missing Due Date', 'Please enter a due date.');
-      return;
-    }
-
-    // Check MM/DD/YYYY format
-    const datePattern =
-      /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-
-    if (!datePattern.test(dueDate)) {
-      Alert.alert(
-        'Invalid Due Date',
-        'Please enter the date in MM/DD/YYYY format.'
-      );
-      return;
-    }
-
-    const [month, day, year] = dueDate.split('/').map(Number);
-
-    const selectedDate = new Date(year, month - 1, day);
-
-    // Check if the date actually exists
+  const calculate = (operation: Operation) => {
     if (
-      selectedDate.getFullYear() !== year ||
-      selectedDate.getMonth() !== month - 1 ||
-      selectedDate.getDate() !== day
+      firstNumber.trim() === "" ||
+      secondNumber.trim() === ""
     ) {
-      Alert.alert(
-        'Invalid Due Date',
-        'Please enter a valid calendar date.'
-      );
+      setResult(null);
+      setError("Please enter both numbers.");
       return;
     }
 
-    // Get today's date without the time
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const first = Number(firstNumber);
+    const second = Number(secondNumber);
 
-    // Check if the due date has already passed
-    if (selectedDate < today) {
-      Alert.alert(
-        'Invalid Due Date',
-        'The due date cannot be in the past.'
-      );
+    if (!Number.isFinite(first) || !Number.isFinite(second)) {
+      setResult(null);
+      setError("Please enter valid numbers.");
       return;
     }
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: taskTitle.trim(),
-      dueDate: dueDate.trim(),
-      completed: false,
-    };
+    if (operation === "÷" && second === 0) {
+      setResult(null);
+      setError("Cannot divide by zero.");
+      return;
+    }
 
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    let answer = 0;
 
-    setTaskTitle('');
-    setDueDate('');
+    if (operation === "+") {
+      answer = first + second;
+    } else if (operation === "−") {
+      answer = first - second;
+    } else if (operation === "×") {
+      answer = first * second;
+    } else if (operation === "÷") {
+      answer = first / second;
+    }
+
+    setError(null);
+    setResult(String(answer));
   };
 
-  const toggleTask = (id: string) => {
-    setTasks((currentTasks) =>
-      currentTasks.map((item) =>
-        item.id === id
-          ? { ...item, completed: !item.completed }
-          : item
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks((currentTasks) =>
-      currentTasks.filter((item) => item.id !== id)
-    );
+  const clearCalculator = () => {
+    setFirstNumber("");
+    setSecondNumber("");
+    setResult(null);
+    setError(null);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.content}
-        ListHeaderComponent={
-          <>
-            {/* Header */}
-            <View style={styles.header}>
-              <ThemedText type="title" style={styles.title}>
-                My Tasks
-              </ThemedText>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
 
-              <ThemedText style={styles.subtitle}>
-                Do it, Do it now.
-              </ThemedText>
-            </View>
+        {/* Title */}
+        <Text style={styles.title}>Calculator</Text>
 
-            {/* Student Information */}
-            <View style={styles.card}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Student Information
-              </ThemedText>
+        {/* Display */}
+        <View style={styles.display}>
+          <Text style={styles.displayLabel}>
+            {error ? "ERROR" : "RESULT"}
+          </Text>
 
-              <TextInput
-                style={styles.input}
-                value="Anton James R. Sanchez"
-                editable={false}
-              />
+          <Text
+            style={[
+              styles.displayValue,
+              error && styles.errorText,
+            ]}
+          >
+            {error ?? result ?? "0"}
+          </Text>
+        </View>
 
-              <TextInput
-                style={styles.input}
-                value="BS Information Technology"
-                editable={false}
-              />
-            </View>
+        {/* Inputs */}
+        <View style={styles.inputs}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>NUMBER 1</Text>
 
-            {/* Task Summary */}
-            <View style={styles.summary}>
-              <ThemedText style={styles.summaryTitle}>
-                Task Summary
-              </ThemedText>
-
-              <View style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>
-                  Total Tasks
-                </ThemedText>
-
-                <ThemedText style={styles.summaryValue}>
-                  {tasks.length}
-                </ThemedText>
-              </View>
-
-              <View style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>
-                  Completed
-                </ThemedText>
-
-                <ThemedText style={styles.completedValue}>
-                  {tasks.filter((item) => item.completed).length}
-                </ThemedText>
-              </View>
-
-              <View style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>
-                  Remaining
-                </ThemedText>
-
-                <ThemedText style={styles.remainingValue}>
-                  {tasks.filter((item) => !item.completed).length}
-                </ThemedText>
-              </View>
-            </View>
-
-            {/* Add Task */}
-            <View style={styles.card}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                Add New Task
-              </ThemedText>
-
-              {/* Task Title */}
-              <TextInput
-                style={styles.input}
-                placeholder="Task title"
-                placeholderTextColor="#777"
-                value={taskTitle}
-                onChangeText={setTaskTitle}
-              />
-
-              {/* Due Date */}
-              <TextInput
-                style={styles.input}
-                placeholder="Due date (MM/DD/YYYY)"
-                placeholderTextColor="#777"
-                value={dueDate}
-                onChangeText={setDueDate}
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-              />
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addButton,
-                  pressed && styles.buttonPressed,
-                ]}
-                onPress={addTask}
-              >
-                <ThemedText style={styles.addButtonText}>
-                  + Add Task
-                </ThemedText>
-              </Pressable>
-            </View>
-
-            {/* Task List Title */}
-            <ThemedText type="subtitle" style={styles.listTitle}>
-              Current Task List
-            </ThemedText>
-          </>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.taskItem}>
-            <Pressable
-              style={styles.taskContent}
-              onPress={() => toggleTask(item.id)}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  item.completed && styles.checkboxCompleted,
-                ]}
-              >
-                {item.completed && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
-              </View>
-
-              <View style={styles.taskDetails}>
-                <ThemedText
-                  style={[
-                    styles.taskText,
-                    item.completed && styles.completedTask,
-                  ]}
-                >
-                  {item.title}
-                </ThemedText>
-
-                <ThemedText style={styles.dueDate}>
-                  Due: {item.dueDate}
-                </ThemedText>
-              </View>
-            </Pressable>
-
-            <Pressable
-              style={styles.deleteButton}
-              onPress={() => deleteTask(item.id)}
-            >
-              <ThemedText style={styles.deleteText}>
-                Delete
-              </ThemedText>
-            </Pressable>
+            <TextInput
+              style={styles.input}
+              value={firstNumber}
+              onChangeText={setFirstNumber}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor="#666666"
+            />
           </View>
-        )}
-        ListEmptyComponent={
-          <ThemedText style={styles.emptyText}>
-            No tasks yet. Add your first task above.
-          </ThemedText>
-        }
-      />
-    </KeyboardAvoidingView>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>NUMBER 2</Text>
+
+            <TextInput
+              style={styles.input}
+              value={secondNumber}
+              onChangeText={setSecondNumber}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor="#666666"
+            />
+          </View>
+        </View>
+
+        {/* Operation Buttons */}
+        <View style={styles.operations}>
+          <Pressable
+            onPress={() => calculate("+")}
+            style={({ pressed }) => [
+              styles.operationButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.operationText}>+</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => calculate("−")}
+            style={({ pressed }) => [
+              styles.operationButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.operationText}>−</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => calculate("×")}
+            style={({ pressed }) => [
+              styles.operationButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.operationText}>×</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => calculate("÷")}
+            style={({ pressed }) => [
+              styles.operationButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.operationText}>÷</Text>
+          </Pressable>
+        </View>
+
+        {/* Clear */}
+        <Pressable
+          onPress={clearCalculator}
+          style={({ pressed }) => [
+            styles.clearButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.clearText}>CLEAR</Text>
+        </Pressable>
+
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D1117',
+    backgroundColor: "#0A0A0A",
   },
 
   content: {
-    padding: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-
-  header: {
-    marginBottom: 25,
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
   },
 
   title: {
-    color: '#FFFFFF',
-    marginBottom: 6,
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "700",
+    marginBottom: 30,
   },
 
-  subtitle: {
-    color: '#8B949E',
-    fontSize: 15,
+  /* Display */
+
+  display: {
+    minHeight: 130,
+    backgroundColor: "#171717",
+    borderRadius: 20,
+    padding: 22,
+    justifyContent: "space-between",
+    marginBottom: 30,
   },
 
-  card: {
-    backgroundColor: '#161B22',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#30363D',
+  displayLabel: {
+    color: "#888888",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.5,
   },
 
-  cardTitle: {
-    color: '#FFFFFF',
-    marginBottom: 14,
+  displayValue: {
+    color: "#FFFFFF",
+    fontSize: 42,
+    fontWeight: "700",
+    textAlign: "right",
+    marginTop: 15,
+  },
+
+  errorText: {
+    color: "#FF7777",
+    fontSize: 18,
+  },
+
+  /* Inputs */
+
+  inputs: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+
+  inputContainer: {
+    flex: 1,
+  },
+
+  inputLabel: {
+    color: "#888888",
+    fontSize: 10,
+    fontWeight: "700",
+    marginBottom: 8,
   },
 
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#30363D',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    backgroundColor: '#0D1117',
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-
-  addButton: {
-    height: 48,
-    borderRadius: 10,
-    backgroundColor: '#238636',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-
-  buttonPressed: {
-    opacity: 0.7,
-  },
-
-  addButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-
-  listTitle: {
-    color: '#FFFFFF',
-    marginTop: 5,
-    marginBottom: 12,
-  },
-
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    marginBottom: 10,
+    color: "#FFFFFF",
+    fontSize: 22,
+    backgroundColor: "#171717",
     borderRadius: 12,
-    backgroundColor: '#161B22',
-    borderWidth: 1,
-    borderColor: '#30363D',
+    paddingHorizontal: 15,
+    paddingVertical: 14,
   },
 
-  taskContent: {
+  /* Operations */
+
+  operations: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  operationButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 65,
+    backgroundColor: "#2A2A2A",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  checkbox: {
-    width: 25,
-    height: 25,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: '#58A6FF',
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+  operationText: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "600",
   },
 
-  checkboxCompleted: {
-    backgroundColor: '#238636',
-    borderColor: '#238636',
+  /* Clear */
+
+  clearButton: {
+    height: 55,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    lineHeight: 18,
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-
-  taskDetails: {
-    flex: 1,
-  },
-
-  taskText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 5,
-  },
-
-  completedTask: {
-    textDecorationLine: 'line-through',
-    color: '#8B949E',
-  },
-
-  dueDate: {
-    color: '#58A6FF',
+  clearText: {
+    color: "#000000",
     fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
 
-  deleteButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-
-  deleteText: {
-    color: '#F85149',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    color: '#8B949E',
-    marginVertical: 30,
-  },
-
-  summary: {
-    marginBottom: 16,
-    padding: 18,
-    borderRadius: 16,
-    backgroundColor: '#161B22',
-    borderWidth: 1,
-    borderColor: '#30363D',
-  },
-
-  summaryTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 7,
-  },
-
-  summaryLabel: {
-    color: '#8B949E',
-  },
-
-  summaryValue: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-
-  completedValue: {
-    color: '#3FB950',
-    fontWeight: 'bold',
-  },
-
-  remainingValue: {
-    color: '#58A6FF',
-    fontWeight: 'bold',
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
 });

@@ -1,38 +1,39 @@
+import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ThemeProvider, useTheme } from './theme';
-
-function RootLayoutNav() {
-  const { colors, isDark } = useTheme();
-
-  return (
-    <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      >
-        <Stack.Screen name="tabs" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="course/[id]"
-          options={{ title: 'Course Details', headerBackTitle: 'Back' }}
-        />
-        <Stack.Screen
-          name="student/[id]"
-          options={{ title: 'Student Details', headerBackTitle: 'Back' }}
-        />
-      </Stack>
-    </>
-  );
-}
+import { EventsProvider } from '../contexts/EventsContext';
+import { ProfileProvider } from '../contexts/ProfileContext';
+import { colors } from '../constants/theme';
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutNav />
-    </ThemeProvider>
+    <ProfileProvider>
+      <EventsProvider>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.textPrimary,
+            headerTitleStyle: { fontWeight: '700' },
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="event/[id]" options={{ title: 'Event Details' }} />
+          <Stack.Screen
+            name="add-event"
+            options={{ title: 'Add Event', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="edit-event/[id]"
+            options={{ title: 'Edit Event', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="edit_profile"
+            options={{ title: 'Edit Profile', presentation: 'modal' }}
+          />
+        </Stack>
+      </EventsProvider>
+    </ProfileProvider>
   );
 }

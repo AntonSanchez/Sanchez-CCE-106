@@ -1,300 +1,114 @@
-import { useState } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-
-type Operation = "+" | "−" | "×" | "÷";
+import { Link, useRouter } from 'expo-router';
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import StatCard from '../../components/StatCard';
+import { colors } from '../../constants/theme';
+import { useEvents } from '../../contexts/EventsContext';
+import { useProfile } from '../../contexts/ProfileContext';
 
 export default function HomeScreen() {
-  const [firstNumber, setFirstNumber] = useState("");
-  const [secondNumber, setSecondNumber] = useState("");
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { events } = useEvents();
+  const { fullName } = useProfile();
+  const router = useRouter();
 
-  const calculate = (operation: Operation) => {
-    if (
-      firstNumber.trim() === "" ||
-      secondNumber.trim() === ""
-    ) {
-      setResult(null);
-      setError("Please enter both numbers.");
-      return;
-    }
-
-    const first = Number(firstNumber);
-    const second = Number(secondNumber);
-
-    if (!Number.isFinite(first) || !Number.isFinite(second)) {
-      setResult(null);
-      setError("Please enter valid numbers.");
-      return;
-    }
-
-    if (operation === "÷" && second === 0) {
-      setResult(null);
-      setError("Cannot divide by zero.");
-      return;
-    }
-
-    let answer = 0;
-
-    if (operation === "+") {
-      answer = first + second;
-    } else if (operation === "−") {
-      answer = first - second;
-    } else if (operation === "×") {
-      answer = first * second;
-    } else if (operation === "÷") {
-      answer = first / second;
-    }
-
-    setError(null);
-    setResult(String(answer));
-  };
-
-  const clearCalculator = () => {
-    setFirstNumber("");
-    setSecondNumber("");
-    setResult(null);
-    setError(null);
-  };
+  const totalEvents = events.length;
+  const joinedEvents = events.filter((e) => e.isJoined).length;
+  const availableEvents = totalEvents - joinedEvents;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.appTitle}>EventMate</Text>
+      <Text style={styles.welcome}>Welcome back, {fullName || 'Student'}</Text>
+      <Text style={styles.subtitle}>Here's what's happening on campus</Text>
 
-        {/* Title */}
-        <Text style={styles.title}>Calculator</Text>
-
-        {/* Display */}
-        <View style={styles.display}>
-          <Text style={styles.displayLabel}>
-            {error ? "ERROR" : "RESULT"}
-          </Text>
-
-          <Text
-            style={[
-              styles.displayValue,
-              error && styles.errorText,
-            ]}
-          >
-            {error ?? result ?? "0"}
-          </Text>
-        </View>
-
-        {/* Inputs */}
-        <View style={styles.inputs}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>NUMBER 1</Text>
-
-            <TextInput
-              style={styles.input}
-              value={firstNumber}
-              onChangeText={setFirstNumber}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              placeholderTextColor="#666666"
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>NUMBER 2</Text>
-
-            <TextInput
-              style={styles.input}
-              value={secondNumber}
-              onChangeText={setSecondNumber}
-              keyboardType="decimal-pad"
-              placeholder="0"
-              placeholderTextColor="#666666"
-            />
-          </View>
-        </View>
-
-        {/* Operation Buttons */}
-        <View style={styles.operations}>
-          <Pressable
-            onPress={() => calculate("+")}
-            style={({ pressed }) => [
-              styles.operationButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.operationText}>+</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => calculate("−")}
-            style={({ pressed }) => [
-              styles.operationButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.operationText}>−</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => calculate("×")}
-            style={({ pressed }) => [
-              styles.operationButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.operationText}>×</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => calculate("÷")}
-            style={({ pressed }) => [
-              styles.operationButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.operationText}>÷</Text>
-          </Pressable>
-        </View>
-
-        {/* Clear */}
-        <Pressable
-          onPress={clearCalculator}
-          style={({ pressed }) => [
-            styles.clearButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.clearText}>CLEAR</Text>
-        </Pressable>
-
+      <View style={styles.statsRow}>
+        <StatCard label="Total Events" value={totalEvents} accentColor={colors.primary} />
+        <StatCard label="Joined" value={joinedEvents} accentColor="#059669" />
+        <StatCard label="Available" value={availableEvents} accentColor="#D97706" />
       </View>
-    </SafeAreaView>
+
+      {/* Declarative navigation via Link */}
+      <Link href="/events" asChild>
+        <Pressable style={({ pressed }) => [styles.browseButton, { opacity: pressed ? 0.8 : 1 }]}>
+          <Text style={styles.browseButtonText}>Browse All Events</Text>
+        </Pressable>
+      </Link>
+
+      {/* Programmatic navigation via router.push */}
+      <Pressable
+        style={({ pressed }) => [styles.secondaryButton, { opacity: pressed ? 0.8 : 1 }]}
+        onPress={() => router.push('/edit_profile')}
+      >
+        <Text style={styles.secondaryButtonText}>Edit My Profile</Text>
+      </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [styles.secondaryButton, { opacity: pressed ? 0.8 : 1 }]}
+        onPress={() => router.push('/add-event')}
+      >
+        <Text style={styles.secondaryButtonText}>+ Add New Event</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0A",
+    backgroundColor: colors.background,
   },
-
   content: {
-    flex: 1,
-    padding: 24,
-    justifyContent: "center",
+    padding: 20,
+    paddingBottom: 40,
   },
-
-  title: {
-    color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "700",
-    marginBottom: 30,
-  },
-
-  /* Display */
-
-  display: {
-    minHeight: 130,
-    backgroundColor: "#171717",
-    borderRadius: 20,
-    padding: 22,
-    justifyContent: "space-between",
-    marginBottom: 30,
-  },
-
-  displayLabel: {
-    color: "#888888",
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 1.5,
-  },
-
-  displayValue: {
-    color: "#FFFFFF",
-    fontSize: 42,
-    fontWeight: "700",
-    textAlign: "right",
-    marginTop: 15,
-  },
-
-  errorText: {
-    color: "#FF7777",
-    fontSize: 18,
-  },
-
-  /* Inputs */
-
-  inputs: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
-  },
-
-  inputContainer: {
-    flex: 1,
-  },
-
-  inputLabel: {
-    color: "#888888",
-    fontSize: 10,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-
-  input: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    backgroundColor: "#171717",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 14,
-  },
-
-  /* Operations */
-
-  operations: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 14,
-  },
-
-  operationButton: {
-    flex: 1,
-    height: 65,
-    backgroundColor: "#2A2A2A",
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  operationText: {
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "600",
-  },
-
-  /* Clear */
-
-  clearButton: {
-    height: 55,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  clearText: {
-    color: "#000000",
-    fontSize: 13,
-    fontWeight: "800",
+  appTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-
-  pressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.98 }],
+  welcome: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  browseButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  browseButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  secondaryButton: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  secondaryButtonText: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

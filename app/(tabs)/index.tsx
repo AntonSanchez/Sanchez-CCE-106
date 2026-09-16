@@ -19,7 +19,7 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.appTitle}>EventMate</Text>
       <Text style={styles.welcome}>Welcome back, {fullName || 'Student'}</Text>
-      <Text style={styles.subtitle}>Here's what's happening on campus</Text>
+      <Text style={styles.subtitle}>All Events</Text>
 
       <View style={styles.statsRow}>
         <StatCard label="Total Events" value={totalEvents} accentColor={colors.primary} />
@@ -27,19 +27,11 @@ export default function HomeScreen() {
         <StatCard label="Available" value={availableEvents} accentColor="#D97706" />
       </View>
 
-      {/* Declarative navigation via Link */}
-      <Link href="/events" asChild>
-        <Pressable style={({ pressed }) => [styles.browseButton, { opacity: pressed ? 0.8 : 1 }]}>
-          <Text style={styles.browseButtonText}>Browse All Events</Text>
-        </Pressable>
-      </Link>
-
-      {/* Programmatic navigation via router.push */}
       <Pressable
         style={({ pressed }) => [styles.secondaryButton, { opacity: pressed ? 0.8 : 1 }]}
-        onPress={() => router.push('/edit_profile')}
+        onPress={() => router.push('/events')}
       >
-        <Text style={styles.secondaryButtonText}>Edit My Profile</Text>
+        <Text style={styles.secondaryButtonText}>Browse All Events</Text>
       </Pressable>
 
       <Pressable

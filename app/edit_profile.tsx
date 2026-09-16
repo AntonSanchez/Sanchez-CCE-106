@@ -1,18 +1,17 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Pressable,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useProfile } from '../contexts/ProfileContext';
 import Toast from '../components/Toast';
 import { colors } from '../constants/theme';
+import { useProfile } from '../contexts/ProfileContext';
 
 const FULL_NAME_MAX_LENGTH = 40;
 
@@ -56,8 +55,6 @@ export default function EditProfileScreen() {
     setError('');
     updateProfile({ fullName: fullName.trim(), email: email.trim(), program: program.trim() });
 
-    // Show a brief confirmation, then return to the previous screen so the
-    // student sees the profile was saved.
     setShowToast(true);
     setTimeout(() => {
       router.back();
@@ -79,7 +76,7 @@ export default function EditProfileScreen() {
             setFullName(stripDigits(text));
             if (error) setError('');
           }}
-          placeholder="Anton Sanchez"
+          placeholder="Your Full Name"
           maxLength={FULL_NAME_MAX_LENGTH}
         />
         <Text style={styles.charCount}>
@@ -95,7 +92,7 @@ export default function EditProfileScreen() {
             setEmail(text);
             if (error) setError('');
           }}
-          placeholder="a.sanchez.146916.tc@umindanao.edu.ph"
+          placeholder="Example@Example.com"
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -107,7 +104,7 @@ export default function EditProfileScreen() {
           style={styles.input}
           value={program}
           onChangeText={setProgram}
-          placeholder="BS Information Technology"
+          placeholder="Your Program/Course"
         />
 
         {error.length > 0 && <Text style={styles.errorText}>{error}</Text>}

@@ -9,13 +9,14 @@ function RootLayoutNav() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
+        initialRouteName="lab08"
         screenOptions={{
           headerStyle: { backgroundColor: colors.card },
           headerTintColor: colors.text,
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-        <Stack.Screen name="tabs" options={{ headerShown: false }} />
+        <Stack.Screen name="lab08" options={{ title: 'Attendance' }} />
         <Stack.Screen
           name="course/[id]"
           options={{ title: 'Course Details', headerBackTitle: 'Back' }}
